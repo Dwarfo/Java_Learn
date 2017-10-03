@@ -17,45 +17,13 @@ public class CountryTable {
 		this.fileName = countriesFileName;
 	}
 	
-	private void populate(DefaultTableModel dtm, Vector columnNames) {
+	private DefaultTableModel populateTable () {
 		
 		String line = null;
-        boolean isColumnName = true; 
-		try {
-            BufferedReader br = new BufferedReader(new FileReader(fileName));
-
-            while ((line = br.readLine()) != null) {
-                Vector data = new Vector();
-                StringTokenizer st1 = new StringTokenizer(line, "    ");
-                while (st1.hasMoreTokens()) {
-                    String nextToken = st1.nextToken();
-                    data.add(nextToken);
-                    System.out.println(nextToken);
-                }
-                System.out.println(data);
-                 
-                	dtm.addRow(data);//add here 
-                	System.out.println(".................................");
-                
-            }
-            
-            br.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-		
-	}
-
-	public JTable create() throws IOException {
-		
-		
-		//JTable jTable2 = new JTable();
-        DefaultTableModel dtm = new DefaultTableModel();
-        //populate(dtm, columnNames);
-        String line = null;
         int i=0;
         boolean columnsNotInitialized = true;
+        DefaultTableModel dtm = new DefaultTableModel();
+        
 		try {
             BufferedReader br = new BufferedReader(new FileReader(this.fileName));
 
@@ -71,11 +39,10 @@ public class CountryTable {
                 System.out.println(data);
                 if(columnsNotInitialized) {
                 	for(int j=0;j<i;j++)dtm.addColumn(null);
-                	columnsNotInitialized=false;
+                	columnsNotInitialized = false;
                 }
                 Object[] dataObject = data.toArray();
                 dtm.addRow(dataObject); 
-                //dtm.addColumn();
                 System.out.println(".................................");
                 
             }
@@ -86,20 +53,17 @@ public class CountryTable {
             e.printStackTrace();
         }
 		
-       DefaultTableModel dtm2 = new DefaultTableModel();
-       /*Vector row = new Vector();
-       row.add("Enter data to column 1");
-       row.add("Enter data to column 2");
-       row.add("Enter data to column 3");*/
+		return dtm;
+		
+	}
+
+	public JTable create() throws IOException {
        
-      dtm2.addColumn(new Object[] {"a","b","c","d"});
-       System.out.println(dtm2.getColumnCount());
-       System.out.println(dtm2.getRowCount());
-       
-       JTable jTable2 = new JTable(dtm);
-       jTable2.setModel(dtm);
+             
+       JTable jTable2 = new JTable(populateTable());
+       //jTable2.setModel(dtm);
         
-       //System.out.println((String)dtm.getValueAt(1,0));
+       
 		return jTable2;
 	}
 
