@@ -1,5 +1,4 @@
-Name	Capital	Population	Size
-Republic of Poland	Warsaw	38500	544
-Chech Republic	Prague	10500	331
-Kingdom of Spain	Madrid	46599	228
-Ukraine	Kiev	45000	322
+Name	Capital	Population
+Republic of Poland	Warsaw	38500
+Chech Republic	Prague	10500
+Kingdom of Spain	Madrid	46599
