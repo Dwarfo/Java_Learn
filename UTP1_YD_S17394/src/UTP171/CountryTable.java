@@ -19,66 +19,57 @@ public class CountryTable {
 	private Class[] getTableClasses() {
 		
 		int i = 0;
-		String line = null;
-		boolean secondLine = true;
-		Vector data = new Vector();
+		Class[] classes = new Class[0];
+		
 		try {
             BufferedReader br = new BufferedReader(new FileReader(this.fileName));
-
-            while ((line = br.readLine()) != null) {
-                data = new Vector();
-                StringTokenizer st1 = new StringTokenizer(line, "	");
-                while (st1.hasMoreTokens()) {
-                    String str = st1.nextToken();
-                    data.add(str);
-                    if(secondLine) i++;
+            String line = br.readLine();
+            StringTokenizer st1 = new StringTokenizer(line, "	");
+            while (st1.hasMoreTokens()) {
+                String str = st1.nextToken();
+                i++;                
+            }
+            
+            classes = new Class[i];
+            //System.out.println(classes.length);
+            i = 0;
+            line = br.readLine();
+            st1 = new StringTokenizer(line, "	");
+            
+            while (st1.hasMoreTokens()) {
+            	String str = st1.nextToken();
+            	if(checkNumber(str)) {
+            		classes[i] = Integer.class;
+            		//System.out.println("Became Integer");
                 }
-                if(secondLine) {
-                	secondLine = false;
-                }
-                else
-                	break; 
-                System.out.println(".................................");   
+            	else {
+            		classes[i] = String.class;
+            		//System.out.println("Became String");
+            	}
+            	i++;
             }
             br.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-		System.out.println(data);
 		
-		Class[] classes = new Class[i];
-		Object[] rows2 = data.toArray();
-		String[] rows = new String[i];
-		System.out.println(rows2[0]);
-		
-		/*for(int j=0;j<i;j++) {
-			if(checkNumber(rows[j])) {
-            	rows2[j] = (Integer)rows2[j];
-            }
-			else
-				rows2[j] = rows2[j].toString();
-			classes[j] = rows[j].getClass();	
-		}*/
-		
+
 		return classes;
 		
 	}
 	
-	private DefaultTableModel populateTable (/*Class[] columnClass*/) {
+	private DefaultTableModel populateTable (Class[] columnClass) {
 		
 		String line = null;
         int i=0;
-       /* final Class[] columnClass = getTableClasses() new Class[] {
-    		    Integer.class, String.class, Double.class, Boolean.class
-    		};*/
         
         boolean columnsNotInitialized = true;
         DefaultTableModel dtm = new DefaultTableModel() {
-        	/*@Override
+        	@Override
         	public Class<?> getColumnClass(int columnIndex)
         	{
         	    return columnClass[columnIndex];
-        	}*/
+        	}
         };
         
 		try {
@@ -96,9 +87,9 @@ public class CountryTable {
                     	data.add(str);
                     }
                     if(columnsNotInitialized) i++;
-                    System.out.println(str);
+                   // System.out.println(str);
                 }
-                System.out.println(data);
+                //System.out.println(data);
                 if(columnsNotInitialized) {
                 	//for(int j=0;j<i;j++)dtm.addColumn(null);
                 	dtm.setColumnCount(i);
@@ -107,7 +98,7 @@ public class CountryTable {
                 }
                 else
                 	dtm.addRow(data); 
-                System.out.println(".................................");   
+               //System.out.println(".................................");   
             }
             
             br.close();
@@ -129,7 +120,7 @@ public class CountryTable {
 		    } catch(NullPointerException e) {
 		        return false;
 		    }
-		    System.out.println("Is number!");
+		    //System.out.println("Is number!");
 		    return true;
 	}
 	
@@ -138,8 +129,8 @@ public class CountryTable {
 	public JTable create() throws IOException {
        
              
-   // JTable jTable2 = new JTable(/*populateTable(getTableClasses())*/);
-    JTable jTable2 = new JTable(populateTable());
+    JTable jTable2 = new JTable(populateTable(getTableClasses()));
+    //JTable jTable2 = new JTable(populateTable());
     //jTable2.setModel(dtm);
        
         
