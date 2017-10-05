@@ -5,7 +5,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
+import com.sun.prism.paint.Color;
+import com.sun.xml.internal.ws.api.Component;
 
 import javax.swing.JTable;
 
@@ -53,7 +58,6 @@ public class CountryTable {
             e.printStackTrace();
         }
 		
-
 		return classes;
 		
 	}
@@ -124,16 +128,29 @@ public class CountryTable {
 		    return true;
 	}
 	
-
+	private JTable colorCell(JTable table) {
+		
+		int columns = table.getColumnCount();
+		int j=0;
+		
+		while(j<columns) {
+			if(table.getColumnName(j).equals("Population"))break; 
+			//System.out.println(table.getColumnName(j));
+			j++;
+		}
+		//System.out.println(table.getColumnName(j));
+		System.out.println(j);
+		table.getColumnModel().getColumn(j).setCellRenderer(new PopsCellRenderer());
+		
+		return table;
+	}
+	
 	
 	public JTable create() throws IOException {
        
-             
+    System.out.println(populateTable(getTableClasses()).getColumnCount());        
     JTable jTable2 = new JTable(populateTable(getTableClasses()));
-    //JTable jTable2 = new JTable(populateTable());
-    //jTable2.setModel(dtm);
-       
-        
+    jTable2 = colorCell(jTable2);
        
 	return jTable2;
 	}
