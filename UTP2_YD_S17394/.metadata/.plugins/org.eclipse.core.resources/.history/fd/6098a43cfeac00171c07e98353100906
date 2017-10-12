@@ -1,0 +1,11 @@
+/**
+ *
+ *  @author Yelchaninov Denys S17394
+ *
+ */
+
+package LAB02;
+
+
+public interface Selector { // Uwaga: interfejs musi być sparametrtyzowany
+}  

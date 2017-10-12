@@ -1,0 +1,21 @@
+/**
+ *
+ *  @author Yelchaninov Denys S17394
+ *
+ */
+
+package LAB02;
+
+
+public class ListCreator<T> {
+	
+	public static List<T> collectFrom(List<T> list){
+		;
+	}
+	
+	public List<T> when(<T> selector){
+		;
+	}
+	// Uwaga: klasa musi być sparametrtyzowana
+	
+}  

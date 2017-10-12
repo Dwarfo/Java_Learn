@@ -1,0 +1,13 @@
+/**
+ *
+ *  @author Yelchaninov Denys S17394
+ *
+ */
+
+package LAB02;
+
+
+public interface Mapper<T> {
+	// Uwaga: interfejs musi być sparametrtyzowany
+	T map(t T);
+}  

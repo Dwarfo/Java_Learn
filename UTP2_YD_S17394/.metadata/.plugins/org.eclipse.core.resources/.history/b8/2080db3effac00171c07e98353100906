@@ -1,0 +1,15 @@
+/**
+ *
+ *  @author Yelchaninov Denys S17394
+ *
+ */
+
+package LAB02;
+
+
+public class ListCreator<T> {
+	
+	
+	// Uwaga: klasa musi być sparametrtyzowana
+	
+}  
