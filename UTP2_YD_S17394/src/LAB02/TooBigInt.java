@@ -10,7 +10,7 @@ public class TooBigInt implements Selector<Integer> {
 	
 	@Override
 	public boolean select(Integer number){
-		if(number > this.selectNumber)
+		if(number < this.selectNumber)
 			return true;
 		else
 			return false;
