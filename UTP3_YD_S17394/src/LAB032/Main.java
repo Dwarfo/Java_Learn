@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/*<-- niezbędne importy */
+
 
 public class Main {
 
@@ -30,11 +30,7 @@ public class Main {
     			Integer cost = (int)(Integer.parseInt(e.substring(e.lastIndexOf(" ")+1))*ratePLNvsEUR);
     			return "to " + de + " - price in PLN: " + Integer.toString(cost);
     		}).collect(Collectors.toList());
-    /*<-- tu należy dopisać fragment
-     * przy czym nie wolno używać żadnych własnych klas, jak np. ListCreator
-     * ani też żadnych własnych interfejsów
-     * Podpowiedź: należy użyć strumieni
-     */
+    
 
     for (String r : result) System.out.println(r);
   }
