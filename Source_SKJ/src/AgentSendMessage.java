@@ -3,19 +3,21 @@ import java.io.IOException;
 public class AgentSendMessage implements Runnable{
 
 	private AgentSolo agentSender;
+	private AgentSolo agentReceiver;
 	private String message;
 	
-	public AgentSendMessage(AgentSolo agent, String message) {
+	public AgentSendMessage(String message, AgentSolo agentReceiver, AgentSolo agentSender) {
 		
-		this.agentSender = agent;
+		this.agentSender = agentSender;
 		this.message = message;
+		this.agentReceiver = agentReceiver;
 		
 	}
 
 	@Override
 	public void run() {
 		try {
-			agentSender.sendMessageThread(agentSender.host, message, 60010);
+			agentSender.sendMessageThread(this.agentReceiver, message);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

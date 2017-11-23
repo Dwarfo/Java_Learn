@@ -17,8 +17,6 @@ public class Main {
 			AgentSolo a;
 			try {
 				a = new AgentSolo("localhost", 60010);
-				//a.sendMessage("It's time to work");
-				AgentMessageListener a_listener = a.getListener(); 
 				a.startListening();
 				//a_listener.run();
 				
@@ -55,9 +53,11 @@ public class Main {
 			try {
 				b = new AgentSolo("localhost", 60000);
 				//b.sendMessage("It's time to work");
-				AgentSendMessage b_sender = b.getSender();
-				b.sendMessageThread("localhost","Its ALive!",60010);
+				//AgentSendMessage b_sender = b.getSender();
+				//b.sendMessageThread("localhost","Its ALive!",60010);
 				//b_sender.run();
+				AgentSolo.sendMessage("Message", new AgentSolo("localhost", 60110), b);
+				//AgentSolo.sendMessage("close", new AgentSolo("localhost", 60111), b);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -90,27 +90,26 @@ public class Main {
 	
 	public static void main(String[] args) throws UnknownHostException, Exception {
 		// TODO Auto-generated method stub
-		/*AgentSolo a = new AgentSolo("localhost", 2000);
-		AgentSolo b = new AgentSolo(a,"localhost", 1999);
+		/*AgentSolo a = new AgentSolo("localhost", 60010);
+		AgentSolo a2 = new AgentSolo("localhost", 60012);
+		AgentSolo a3 = new AgentSolo("localhost", 60013);
+		AgentSolo b = new AgentSolo(a,"localhost", 60000);
 		
 		
-		b.sendMessage("It's time to work");
-		AgentSendMessage b_sender = b.getSender();
-		AgentMessageListener a_listener = a.getListener(); 
+		b.sendMessage("Message", a, b);
+		AgentSolo.sendMessage("Message to 13", a3, b);
+		AgentSolo.sendMessage("Message to 13 number 2", a3, b);
+		AgentSolo.sendMessage("Message to b number 3", b, a3);*/
 		
-		Thread sendThread = new Thread(b_sender);
-		sendThread.start();
-		Thread receiveThread = new Thread(a_listener);
-		receiveThread.start();
-		*/
+		CommandExecutor ce = new CommandExecutor();
 		
+		//new Thread(a.getListener()).start();
+		//new Thread(b.getSender()).start();
 		
-		
-		Thread receiveThread = new MyThread();
-		receiveThread.start();
-		
-		Thread sendThread = new MyThread2();
-		sendThread.start();
+		/*MyThread thread1 = new MyThread();
+		thread1.start();
+		MyThread2 thread2 = new MyThread2();
+		thread2.start();*/
 		
 		
 		

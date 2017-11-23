@@ -10,7 +10,7 @@ import java.util.Map;
 public class AgentSolo {
 	
 	private final int portNumber;
-	public final String host;
+	private final String host;
 	public final String agentName;
 	
 	private AgentSendMessage sender;
@@ -34,7 +34,7 @@ public class AgentSolo {
 		
 		this.receiver = new AgentMessageListener(this);
 		//this.sender = new AgentSendMessage(this ,);
-		
+		new Thread(this.getListener()).start();
 		//startListening();
 		System.out.println("Created agent: " + this.agentName);
 		
@@ -42,53 +42,66 @@ public class AgentSolo {
 	
 	public AgentSolo(AgentSolo agent,String host, int port) throws Exception {
 		this(host,port);
-		this.createConnection(agent.agentName, agent.host, agent.portNumber);
+		this.createConnection(agent);
 	}
 	
-	public void createConnection(String agentName, String host, int port) {
-		try {
-			connectionsToServer.put(agentName ,new Socket(host, port));
-			System.out.print(" connected to " + agentName);
-		} catch (IOException e) {
-		}
+	public void createConnection(AgentSolo agent) {
+		
 	}
 	
 	public void startListening() throws Exception {
 		
+		System.out.println("Waiting for message");
+		boolean open = true;
 		String message;
 		Socket newSocket = null;
+		while(open) {
 		try {
 			//this.AgentSocket = new ServerSocket(this.portNumber);
+				newSocket = AgentSocket.accept();
 
-            newSocket = AgentSocket.accept();
-
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(newSocket.getInputStream()));
-            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(newSocket.getOutputStream()));
-            String line = null;
-            line = in.readLine();
-            System.out.println(line);
-            out.write(line + "1100");
-            out.newLine();
-            out.flush();
+            	BufferedReader in = new BufferedReader(
+            		new InputStreamReader(newSocket.getInputStream()));
+            	BufferedWriter out = new BufferedWriter(new OutputStreamWriter(newSocket.getOutputStream()));
+            	String line = null;
+            	line = in.readLine();
+            	if(line.equals("close")) {
+            		AgentSocket.close();
+            		break;
+            	}
+            	
+            	System.out.println(line);
+            	out.write(line + " Message answered!");
+            	out.newLine();
+            	out.flush();
                 
-            }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+            	}
+        	catch (IOException e) {
+            	e.printStackTrace();
+        	}
+		}
 		// connectedToAgent.add(newSocket);
 	}
 		
-	
-	public void sendMessage(String msg) {
-		this.sender = new AgentSendMessage(this,msg);
+	public void receiveMessage() {
+		Thread sendThread = new Thread(this.receiver);
+		sendThread.start();
 	}
 	
-	public void sendMessageThread(String serverAgentName, String testMsg, int port) throws IOException {
+	
+	public static void sendMessage(String msg, AgentSolo agentReceiver, AgentSolo agentSender) {
+		agentSender.sender = new AgentSendMessage(msg,agentReceiver, agentSender);
+		Thread sendThread = new Thread(agentSender.sender);
+		sendThread.start();
+		
+	}
+	
+	public void sendMessageThread(AgentSolo receiver, String testMsg) throws IOException {
 		//Socket senderReceiver = connectionsToServer.get(serverAgentName);
 		String answer = "nothing happened";
-		System.out.println("Sen method in: " + serverAgentName +":"+ port); 
-		Socket senderReceiver = new Socket(serverAgentName, port);
+		System.out.println("Send method in: " + receiver.getHost() +":"+ receiver.getPort()); 
+		//Socket senderReceiver = new Socket(receiver.getHost(), receiver.getPort());
+		Socket senderReceiver = new Socket(receiver.getHost(), receiver.getPort());
 		
 		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(senderReceiver.getInputStream()));  
 		BufferedWriter out = new BufferedWriter(
@@ -120,6 +133,14 @@ public class AgentSolo {
 	
 	public AgentMessageListener getListener() {
 		return receiver;
+	}
+	
+	public int getPort() {
+		return this.portNumber;
+	}
+	
+	public String getHost() {
+		return this.host;
 	}
 		
 }
