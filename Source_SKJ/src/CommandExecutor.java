@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -15,6 +16,7 @@ public class CommandExecutor {
 	private final String synchronize = "sync";
 	private final String showAgentTime = "showTime";
 	private final String showallTime = "showAll";
+	private final String showAllNet = "showNetFor";
 	private final String stahp = "exit";
 	private final String allPosibleCommands = addCommand +" "+ addCommand +" "+ sendMessageToFrom +" "+ synchronize +
 			" "+ showAgentTime +" "+ showallTime +" "+ stahp;
@@ -64,6 +66,17 @@ public class CommandExecutor {
 			String sender = commandPart[3];
 			
 			AgentSolo.sendMessage(commandPart[1], addressBook.get(receiver), addressBook.get(sender));
+			break;
+		case showAllNet:
+			String showAgent = commandPart[1];
+			AgentSolo toShow = addressBook.get(showAgent);
+			toShow.showAllNetMembers();
+		case showallTime:
+			for(Iterator<AgentSolo> i = this.Net.iterator();i.hasNext(); ) {
+	    		AgentSolo timeAgent = i.next();
+	    		System.out.println(timeAgent.getHost() + ":" + timeAgent.getPort() + " time= " + timeAgent.agentClock.getTime() + "ms");
+	    	}
+			
 			break;
 		default:
 			System.out.println("Unknown comand");
