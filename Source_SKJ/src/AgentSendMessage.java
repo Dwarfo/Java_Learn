@@ -17,7 +17,8 @@ public class AgentSendMessage implements Runnable{
 	@Override
 	public void run() {
 		try {
-			agentSender.sendMessageThread(this.agentReceiver, message);
+			Adress adress = agentReceiver.getAdress();
+			agentSender.sendMessageThread(adress, message);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

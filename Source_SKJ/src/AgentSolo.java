@@ -12,8 +12,10 @@ public class AgentSolo {
 	private final int portNumber;
 	private final String host;
 	public final String agentName;
+	private final Adress agentAdr;
+	private boolean isCounting = false;
 	
-	private AgentSendMessage sender;
+	private Runnable sender;
 	private AgentMessageListener receiver;
 	
 	Clock agentClock;
@@ -21,7 +23,9 @@ public class AgentSolo {
 	ServerSocket AgentSocket;
 	
 	//private HashMap<String, String> addressBook;
-	private List<String[]> addressBook = new ArrayList<String[]>();
+	private long toAverage = 0;
+	private int avgKoef = 0;
+	private List<Adress> addressBook = new ArrayList<Adress>();
 	
 	//Initial agent
 	public AgentSolo(String host, int port) throws Exception{
@@ -30,6 +34,7 @@ public class AgentSolo {
 		this.agentClock = new Clock(System.currentTimeMillis());
 		this.agentName = host.toString() +":"+ port;
 		this.AgentSocket = new ServerSocket(this.portNumber);
+		this.agentAdr = new Adress(host, String.valueOf(port));
 		
 		this.receiver = new AgentMessageListener(this);
 		//this.sender = new AgentSendMessage(this ,);
@@ -41,9 +46,8 @@ public class AgentSolo {
 	
 	public AgentSolo(AgentSolo agent,String host, int port) throws Exception {
 		this(host,port);
-		String[] adress = {agent.getHost(),String.valueOf(agent.getPort())};
-		this.addressBook.add(adress);
-		System.out.println(host + ":"+ port + " remembered adress: " + adress[0] + ":" + adress[1]);
+		this.addressBook.add(agent.getAdress());
+		System.out.println(host + ":"+ port + " remembered adress: " + host + ":" + String.valueOf(port));
 	}
 	
 	public void startListening() throws Exception {
@@ -75,7 +79,7 @@ public class AgentSolo {
         			answer = String.valueOf(this.agentClock.getTime());
         			break;
         		case "NET":
-        			String[] newAdress = new String[]{line[1], line[2]};
+        			Adress newAdress = new Adress(line[1], line[2]);
         			netCommandHandler(out,in);
         			answer = "Adresses sended";
         			
@@ -83,10 +87,16 @@ public class AgentSolo {
         				this.addressBook.add(newAdress);
         			}
         			break;
-        		/*case "GTN":
-        			gtnCommandHandler(in);
-        			answer = "Adresses received";
-        			break;*/
+        		case "FRG":
+        			frgCommandHandler(line);
+        			answer = "Adresses removed";
+        			break;
+        		case "AVG":
+        			avgCommandHandler();
+        			break;
+        		case "AVA":
+        			this.agentClock.setTime(Long.valueOf(line[1]));
+        			break;
         		default:
         			System.out.println("Unknown comand");
         		}
@@ -104,6 +114,13 @@ public class AgentSolo {
 		// connectedToAgent.add(newSocket);
 	}
 		
+	private void frgCommandHandler(String[] adr) throws IOException {
+
+		Adress adrToForget = new Adress(adr[1],adr[2]);
+		addressBook.remove(adrToForget);
+		
+	}
+	
 	private void netCommandHandler(BufferedWriter out,BufferedReader in) throws IOException, InterruptedException {
 		
 		out.write("GTN");
@@ -116,9 +133,9 @@ public class AgentSolo {
     	out.flush();
     	Thread.sleep(10);
     	
-    	for(Iterator<String[]> i = this.addressBook.iterator();i.hasNext(); ) {
-    		String[] adress = i.next();
-    		out.write(adress[0] + " " + adress[1]);
+    	for(Iterator<Adress> i = this.addressBook.iterator();i.hasNext(); ) {
+    		Adress adress = i.next();
+    		out.write(adress.host + " " + adress.port);
     		out.newLine();
         	out.flush();
     		Thread.sleep(10);
@@ -140,42 +157,78 @@ public class AgentSolo {
 		while(listen > 0) {
 			String adress = in.readLine();
 			String[] adressPart = adress.split("\\s+");
-			String[] newAdress = new String[]{adressPart[0], adressPart[1]};
+			Adress newAdress = new Adress(adressPart[0], adressPart[1]);
 			
-			if(!this.addressBook.contains(newAdress)) {
+			if(!(this.addressBook.contains(newAdress))) {
 				this.addressBook.add(newAdress);
+				this.addressBook.remove(this.agentAdr);
 			}
 			listen--;
 		}
 	}
 	
+	private void avgCommandHandler() throws IOException, InterruptedException {
+		
+    	this.isCounting = true;
+    	
+    	AgentSolo.sendMessageToAll("CLK", this);
+    	
+    	while(this.isCounting) {
+    		System.out.println("counting, please standBy");
+    	}
+    	
+    	String avaMsg = "AVA " + String.valueOf(this.toAverage/this.avgKoef);
+    	
+    	AgentSolo.sendMessageToAll(avaMsg, this);
+		this.agentClock.setTime(this.toAverage/this.avgKoef);	
+		}
+		
+		
+		
+	
+	
 	public static void sendMessage(String msg, AgentSolo agentReceiver, AgentSolo agentSender) {
-		agentSender.sender = new AgentSendMessage(msg,agentReceiver, agentSender);
+		Adress adress = agentReceiver.getAdress();
+		System.out.println(adress.host + adress.port);
+		
+		if(agentSender.addressBook.contains(adress)) {
+			agentSender.sender = new AgentSendMessage(msg,agentReceiver, agentSender);
+			Thread sendThread = new Thread(agentSender.sender);
+			sendThread.start();
+		}
+		else
+			System.out.println("Unknown adress");
+	}
+	
+	public static void sendMessageToAll(String msg, AgentSolo agentSender) {
+		
+		agentSender.sender = new AgentSendMessageToAll(msg, agentSender);
 		Thread sendThread = new Thread(agentSender.sender);
 		sendThread.start();
 		
 	}
 	
-	public void sendMessageThread(AgentSolo receiver, String testMsg) throws IOException, InterruptedException {
+	public void sendMessageThread(Adress receiver, String testMsg) throws IOException, InterruptedException {
 		//Socket senderReceiver = connectionsToServer.get(serverAgentName);
 		String answer = "nothing happened";
-		System.out.println("Send method in: " + receiver.getHost() +":"+ receiver.getPort()); 
+		System.out.println("Send method in: " + receiver.host +":"+ receiver.port); 
 		//Socket senderReceiver = new Socket(receiver.getHost(), receiver.getPort());
-		Socket senderReceiver = new Socket(receiver.getHost(), receiver.getPort());
+		Socket senderReceiver = new Socket(receiver.host, Integer.valueOf(receiver.port));
 		
 		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(senderReceiver.getInputStream()));  
 		BufferedWriter out = new BufferedWriter(
                 new OutputStreamWriter(senderReceiver.getOutputStream()));
 		
 		System.out.println(testMsg);
-		if(testMsg.equals("NET")) {
+		if(testMsg.equals("NET")|| testMsg.equals("FRG")) {
 			testMsg += " " + this.getHost() + " " + this.getPort(); 
 		}
+		
 		out.write(testMsg);
 		out.newLine();
         out.flush();
-		
-
+        
+     
 		System.out.println("Mesage sended");
 		try {
 			Thread.sleep(50);
@@ -183,7 +236,17 @@ public class AgentSolo {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 		answer = inFromServer.readLine();
+		
+		if(isCounting) {
+			toAverage += -1*(Long.valueOf(answer) - System.currentTimeMillis()); 
+			avgKoef++;
+			System.out.println(this.addressBook.size());
+			if(avgKoef == this.addressBook.size())
+				isCounting = false;
+		}
+		
 		
 		if(answer.equals("GTN")) {
 			gtnCommandHandler(out, inFromServer);
@@ -192,17 +255,15 @@ public class AgentSolo {
         System.out.println(answer);
         senderReceiver.close();
 	}
+	
+	
 
 	
 	public void showAllNetMembers() {
-		for(Iterator<String[]> i = this.addressBook.iterator();i.hasNext(); ) {
-    		String[] adress = i.next();
-    		System.out.println(adress[0] + " " + adress[1]);
+		for(Iterator<Adress> i = this.addressBook.iterator();i.hasNext(); ) {
+    		Adress adress = i.next();
+    		System.out.println(adress.host + " " + adress.port);
     	}
-	}
-
-	public AgentSendMessage getSender() {
-		return sender;
 	}
 	
 	public AgentMessageListener getListener() {
@@ -215,6 +276,18 @@ public class AgentSolo {
 	
 	public String getHost() {
 		return this.host;
+	}
+	
+	public boolean adrExists(String[] adr) {
+		return this.addressBook.contains(adr);
+	}
+	
+	public List<Adress> getAdressBook() {
+		return this.addressBook;
+	}
+	
+	public Adress getAdress() {
+		return this.agentAdr;
 	}
 		
 }

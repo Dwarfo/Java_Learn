@@ -13,6 +13,7 @@ public class CommandExecutor {
 	private final String addCommand = "addAgent";
 	private final String removeCommand = "removeAgent";
 	private final String sendMessageToFrom = "send";
+	private final String sendMessageFromToAll = "sendAll";
 	private final String synchronize = "sync";
 	private final String showAgentTime = "showTime";
 	private final String showallTime = "showAll";
@@ -65,19 +66,27 @@ public class CommandExecutor {
 			String receiver = commandPart[2];
 			String sender = commandPart[3];
 			
-			AgentSolo.sendMessage(commandPart[1], addressBook.get(receiver), addressBook.get(sender));
+			AgentSolo.sendMessage(commandPart[1],addressBook.get(receiver), addressBook.get(sender));
+			break;
+		case sendMessageFromToAll:
+			String senderToAll = commandPart[2];
+			
+			AgentSolo.sendMessageToAll(commandPart[1], addressBook.get(senderToAll));
 			break;
 		case showAllNet:
 			String showAgent = commandPart[1];
 			AgentSolo toShow = addressBook.get(showAgent);
 			toShow.showAllNetMembers();
+			break;
 		case showallTime:
 			for(Iterator<AgentSolo> i = this.Net.iterator();i.hasNext(); ) {
 	    		AgentSolo timeAgent = i.next();
 	    		System.out.println(timeAgent.getHost() + ":" + timeAgent.getPort() + " time= " + timeAgent.agentClock.getTime() + "ms");
 	    	}
-			
 			break;
+		case removeCommand:
+			AgentSolo agentToRemove = addressBook.get(commandPart[1]);
+			Net.remove(agentToRemove);
 		default:
 			System.out.println("Unknown comand");
 		}
