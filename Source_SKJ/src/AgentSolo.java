@@ -174,7 +174,7 @@ public class AgentSolo {
     	AgentSolo.sendMessageToAll("CLK", this);
     	
     	while(this.isCounting) {
-    		System.out.println("counting, please standBy");
+    		System.out.print("");
     	}
     	
     	String avaMsg = "AVA " + String.valueOf(this.toAverage/this.avgKoef);
