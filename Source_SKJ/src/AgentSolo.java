@@ -1,11 +1,8 @@
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.io.*;
 import java.net.*;
 import java.util.List;
-import java.util.Map;
 
 public class AgentSolo {
 	
@@ -14,6 +11,8 @@ public class AgentSolo {
 	public final String agentName;
 	private final Adress agentAdr;
 	private boolean isCounting = false;
+	private boolean receivingAdresses = false;
+	private boolean ATN = false;
 	
 	private Runnable sender;
 	private AgentMessageListener receiver;
@@ -23,8 +22,8 @@ public class AgentSolo {
 	ServerSocket AgentSocket;
 	
 	//private HashMap<String, String> addressBook;
-	private long toAverage = 0;
-	private int avgKoef = 0;
+	private long toAverage;
+	private int avgKoef = 1;
 	private List<Adress> addressBook = new ArrayList<Adress>();
 	
 	//Initial agent
@@ -32,6 +31,7 @@ public class AgentSolo {
 		this.portNumber = port;
 		this.host = host;
 		this.agentClock = new Clock(System.currentTimeMillis());
+		//this.toAverage = this.agentClock.getCurrentTime();
 		this.agentName = host.toString() +":"+ port;
 		this.AgentSocket = new ServerSocket(this.portNumber);
 		this.agentAdr = new Adress(host, String.valueOf(port));
@@ -39,6 +39,7 @@ public class AgentSolo {
 		this.receiver = new AgentMessageListener(this);
 		//this.sender = new AgentSendMessage(this ,);
 		new Thread(this.getListener()).start();
+		//new Thread(this.agentClock).start();
 		//startListening();
 		System.out.println("Created agent: " + this.agentName);
 		
@@ -48,6 +49,56 @@ public class AgentSolo {
 		this(host,port);
 		this.addressBook.add(agent.getAdress());
 		System.out.println(host + ":"+ port + " remembered adress: " + host + ":" + String.valueOf(port));
+		
+		AgentSolo.sendMessage("NET", agent.getAdress(), this);
+		Thread.sleep(100);//this is chosen impirically, so that no additional boolean is needed
+		getInitMsg("NET");
+		Thread.sleep(100);
+		
+		Thread.sleep(500);
+		//setTime();
+		//AgentSolo.sendMessage("SYN", this.getAdress(), agent);
+		Thread.sleep(500);
+		initialSyn();
+		Thread.sleep(500);
+		this.avgKoef = 0;
+		this.toAverage = 0;
+		//synCommandHandler();
+		getInitMsg("AVA");
+		Thread.sleep(500);
+		synCommandHandler();
+		//initialSyn();
+		setTime();
+		
+		
+	}
+	
+	private void initialSyn() throws InterruptedException, IOException {
+		
+		for(Iterator<Adress> i = addressBook.iterator();i.hasNext();) {
+			this.ATN = false;
+			Adress adress = i.next();
+    		AgentSolo.sendMessage("SYN", adress, this);
+    		Thread.sleep(20);
+    		while(!this.ATN) {
+        		System.out.print("");
+        	}
+    		
+		}
+	}
+	
+	private void getInitMsg(String msg) throws InterruptedException {
+		int a = 0;
+		for(Iterator<Adress> i = addressBook.iterator();i.hasNext();) {
+			Adress adress = i.next();
+    		AgentSolo.sendMessage(msg, adress, this);
+    		Thread.sleep(20);
+    		while(this.receivingAdresses) {
+        		System.out.print("");
+        	}
+    		a++;
+		}
+		//Thread.sleep(a*20);
 	}
 	
 	public void startListening() throws Exception {
@@ -76,7 +127,7 @@ public class AgentSolo {
             	
             	switch(line[0]){
         		case "CLK": 
-        			answer = String.valueOf(this.agentClock.getTime());
+        			answer = String.valueOf(this.agentClock.getCurrentTime());
         			break;
         		case "NET":
         			Adress newAdress = new Adress(line[1], line[2]);
@@ -91,11 +142,15 @@ public class AgentSolo {
         			frgCommandHandler(line);
         			answer = "Adresses removed";
         			break;
-        		case "AVG":
-        			avgCommandHandler();
+        		case "SYN":
+        			toAverage = this.agentClock.getCurrentTime();
+        			synCommandHandler();
+        			
+        			answer = "SYF";
         			break;
         		case "AVA":
-        			this.agentClock.setTime(Long.valueOf(line[1]));
+        			//this.agentClock.setTime(Long.valueOf(line[1]));
+        			setTime();
         			break;
         		default:
         			System.out.println("Unknown comand");
@@ -147,10 +202,14 @@ public class AgentSolo {
 	
 	private void gtnCommandHandler(BufferedWriter out, BufferedReader in) throws IOException, InterruptedException {
 		
+		this.receivingAdresses = true;
+		
 		out.write(this.host + " " + this.portNumber);
 		out.newLine();
 		out.flush();
 		Thread.sleep(10);
+		
+		List<Adress> newAdresses = new ArrayList<Adress>();
 		
 		int listen = Integer.valueOf(in.readLine());
 		System.out.println("listen = " + listen);
@@ -160,38 +219,51 @@ public class AgentSolo {
 			Adress newAdress = new Adress(adressPart[0], adressPart[1]);
 			
 			if(!(this.addressBook.contains(newAdress))) {
-				this.addressBook.add(newAdress);
-				this.addressBook.remove(this.agentAdr);
+				newAdresses.add(newAdress);
 			}
 			listen--;
 		}
+		newAdresses.remove(this.agentAdr);
+		this.addressBook.addAll(newAdresses);
+		this.receivingAdresses = false;
 	}
 	
-	private void avgCommandHandler() throws IOException, InterruptedException {
+	private void synCommandHandler() throws IOException, InterruptedException {
 		
     	this.isCounting = true;
-    	
+    	//toAverage = this.agentClock.getCurrentTime();
     	AgentSolo.sendMessageToAll("CLK", this);
     	
     	while(this.isCounting) {
     		System.out.print("");
     	}
     	
-    	String avaMsg = "AVA " + String.valueOf(this.toAverage/this.avgKoef);
+    	/*String avaMsg = "AVA " + String.valueOf(this.toAverage/this.avgKoef);
     	
-    	AgentSolo.sendMessageToAll(avaMsg, this);
-		this.agentClock.setTime(this.toAverage/this.avgKoef);	
+    	AgentSolo.sendMessageToAll(avaMsg, this);*/
+    	
+    	System.out.println("Summa "+ toAverage + " Koef " + avgKoef);
+		//this.agentClock.setTime( (this.toAverage /this.avgKoef) + System.currentTimeMillis() );
+		//this.toAverage = this.agentClock.getTime();
+		//this.avgKoef = 0;
+    	//Thread.sleep(50);
+    	//AgentSolo.sendMessageToAll("AVA", this);
+    	this.isCounting = false;
 		}
 		
-		
+	private void setTime() {
+		this.agentClock.setTime( (this.toAverage /this.avgKoef) );
+		//this.toAverage = this.agentClock.getTime();
+		this.avgKoef = 1;
+	}	
 		
 	
 	
-	public static void sendMessage(String msg, AgentSolo agentReceiver, AgentSolo agentSender) {
-		Adress adress = agentReceiver.getAdress();
-		System.out.println(adress.host + adress.port);
+	public static void sendMessage(String msg, Adress agentReceiver, AgentSolo agentSender) {
+		//Adress adress = agentReceiver.getAdress();
+		System.out.println(agentReceiver.host + agentReceiver.port);
 		
-		if(agentSender.addressBook.contains(adress)) {
+		if(agentSender.addressBook.contains(agentReceiver)) {
 			agentSender.sender = new AgentSendMessage(msg,agentReceiver, agentSender);
 			Thread sendThread = new Thread(agentSender.sender);
 			sendThread.start();
@@ -224,11 +296,12 @@ public class AgentSolo {
 			testMsg += " " + this.getHost() + " " + this.getPort(); 
 		}
 		
+		
 		out.write(testMsg);
 		out.newLine();
         out.flush();
         
-     
+        
 		System.out.println("Mesage sended");
 		try {
 			Thread.sleep(50);
@@ -240,16 +313,24 @@ public class AgentSolo {
 		answer = inFromServer.readLine();
 		
 		if(isCounting) {
-			toAverage += -1*(Long.valueOf(answer) - System.currentTimeMillis()); 
+			System.out.println("Answer: "+ Long.valueOf(answer));
+			System.out.println("toAverage1 " + toAverage);
+			toAverage += Long.valueOf(answer); 
+			System.out.println("toAverage2 " + toAverage);
 			avgKoef++;
-			System.out.println(this.addressBook.size());
-			if(avgKoef == this.addressBook.size())
+			System.out.println("Booksize " + this.addressBook.size());
+			if(avgKoef >= this.addressBook.size())
 				isCounting = false;
 		}
 		
 		
 		if(answer.equals("GTN")) {
 			gtnCommandHandler(out, inFromServer);
+		}
+		
+		if(answer.equals("SYF")) {
+			this.ATN = true;
+			
 		}
 		
         System.out.println(answer);

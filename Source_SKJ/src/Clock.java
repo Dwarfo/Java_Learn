@@ -12,4 +12,8 @@ public class Clock
 	public long getTime() {
 		return System.currentTimeMillis() - this.currentTime;
 	}
+	
+	public long getCurrentTime() {
+		return this.currentTime;
+	}
 }

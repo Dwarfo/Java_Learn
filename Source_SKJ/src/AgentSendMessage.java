@@ -3,10 +3,12 @@ import java.io.IOException;
 public class AgentSendMessage implements Runnable{
 
 	private AgentSolo agentSender;
-	private AgentSolo agentReceiver;
+	private Adress agentReceiver;
 	private String message;
 	
-	public AgentSendMessage(String message, AgentSolo agentReceiver, AgentSolo agentSender) {
+
+	
+	public AgentSendMessage(String message, Adress agentReceiver, AgentSolo agentSender) {
 		
 		this.agentSender = agentSender;
 		this.message = message;
@@ -16,16 +18,17 @@ public class AgentSendMessage implements Runnable{
 
 	@Override
 	public void run() {
+		//Adress adress = agentReceiver.getAdress();
 		try {
-			Adress adress = agentReceiver.getAdress();
-			agentSender.sendMessageThread(adress, message);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
+			agentSender.sendMessageThread(agentReceiver, message);
+		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 		
 	}
+	
+	
+	
 }

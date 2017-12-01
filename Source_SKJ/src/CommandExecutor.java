@@ -22,6 +22,7 @@ public class CommandExecutor {
 	private final String allPosibleCommands = addCommand +" "+ addCommand +" "+ sendMessageToFrom +" "+ synchronize +
 			" "+ showAgentTime +" "+ showallTime +" "+ stahp;
 	
+	private long systemTime = System.currentTimeMillis();
 	boolean reading = true;
 	private ArrayList<AgentSolo> Net;
 	private HashMap<String, AgentSolo> addressBook;
@@ -66,7 +67,7 @@ public class CommandExecutor {
 			String receiver = commandPart[2];
 			String sender = commandPart[3];
 			
-			AgentSolo.sendMessage(commandPart[1],addressBook.get(receiver), addressBook.get(sender));
+			AgentSolo.sendMessage(commandPart[1],addressBook.get(receiver).getAdress(), addressBook.get(sender));
 			break;
 		case sendMessageFromToAll:
 			String senderToAll = commandPart[2];
@@ -83,10 +84,16 @@ public class CommandExecutor {
 	    		AgentSolo timeAgent = i.next();
 	    		System.out.println(timeAgent.getHost() + ":" + timeAgent.getPort() + " time= " + timeAgent.agentClock.getTime() + "ms");
 	    	}
+			System.out.println("System time = "+ (System.currentTimeMillis() - this.systemTime));
 			break;
 		case removeCommand:
 			AgentSolo agentToRemove = addressBook.get(commandPart[1]);
 			Net.remove(agentToRemove);
+			break;
+		case stahp:
+			reading = false;
+			System.out.println("Have a nice day =3");
+			break;
 		default:
 			System.out.println("Unknown comand");
 		}
