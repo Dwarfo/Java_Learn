@@ -23,4 +23,8 @@ public class Adress {
 		this.port = port;
 		this.ip = ip;
 	}
+	
+	public String adrString() {
+		return String.valueOf(port) + ": " + String.valueOf(ip);
+	}
 }

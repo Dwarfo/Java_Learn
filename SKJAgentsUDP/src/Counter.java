@@ -1,13 +1,17 @@
 import java.io.IOException;
+import java.util.Random;
 
 public class Counter implements Runnable {
 
 		private long currentTime;
 		private Agent countingAgent;
+		private long quant;
+		Random rand = new Random();
 		
-		public Counter(long startTime, Agent countingAgent) {
-			this.currentTime = startTime;
+		public Counter(long startTime, Agent countingAgent, long quant) {
+			this.currentTime = startTime + System.currentTimeMillis();
 			this.countingAgent = countingAgent;
+			this.quant = quant;
 		}
 		
 		public void setTime(long time) {
@@ -20,20 +24,26 @@ public class Counter implements Runnable {
 		public long getCurrentTime() {
 			return this.currentTime;
 		}
+		public void setParameters(long time,long quant) {
+			this.currentTime = time + System.currentTimeMillis();
+			this.quant = quant;
+		}
 
 		@Override
 		public void run() {
 			while(true) {
 				try {
-					Thread.sleep(5000);
+					Thread.sleep(quant);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 					try {
 						countingAgent.actualizeTime();
-						countingAgent.showTime();
 					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
@@ -41,4 +51,5 @@ public class Counter implements Runnable {
 			}
 		}
 	
+
 
