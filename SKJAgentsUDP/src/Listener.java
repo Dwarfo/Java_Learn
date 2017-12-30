@@ -1,10 +1,10 @@
 
 public class Listener implements Runnable{
 	
-	private Agent agentListener;
+	private IListenable agentListener;
 	//private ServerSocket serverSocket;
 	
-	public Listener(Agent agent) {
+	public Listener(IListenable agent) {
 		
 		this.agentListener = agent;
 		

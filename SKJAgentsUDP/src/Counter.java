@@ -7,7 +7,11 @@ public class Counter implements Runnable {
 		private Agent countingAgent;
 		private long quant;
 		Random rand = new Random();
+		boolean stop = false;
 		
+		public void stop() {
+			stop = true;
+		}
 		public Counter(long startTime, Agent countingAgent, long quant) {
 			this.currentTime = startTime + System.currentTimeMillis();
 			this.countingAgent = countingAgent;
@@ -31,7 +35,7 @@ public class Counter implements Runnable {
 
 		@Override
 		public void run() {
-			while(true) {
+			while(!stop) {
 				try {
 					Thread.sleep(quant);
 				} catch (InterruptedException e1) {

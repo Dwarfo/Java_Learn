@@ -5,10 +5,10 @@ import java.util.ArrayList;
 
 public class Creator {
 
-	public Agent addAgent(int port, long startTime, long quant) throws IOException, InterruptedException {
+	public Agent addAgent(String adr,int port, long startTime, long quant) throws IOException, InterruptedException {
 		Agent newAgent = null;
 		
-		newAgent = new Agent(port,startTime,quant);
+		newAgent = new Agent(adr,port,startTime,quant);
 		
 		return newAgent;
 	}

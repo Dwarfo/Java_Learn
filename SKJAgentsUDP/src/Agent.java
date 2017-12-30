@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-public class Agent {
+public class Agent implements Sendable,IListenable{
 	
 	DatagramSocket agentSocket;
 	Listener listenThread;
@@ -22,40 +22,30 @@ public class Agent {
 	int numberOfAnswers = 1;
 	long toCount;
 	int actualization = 0;
-	//boolean sended = false;
+	boolean stop = false;
+	Thread listener,countThread;
 
-
-	List<Adress> adresses = new ArrayList<Adress>();
+	private List<Adress> adresses = new ArrayList<Adress>();
 	
-	/*public Agent(int port,long startTime,long quant,String adr) throws SocketException, UnknownHostException {
+	public Agent(String adress,int port,long startTime,long quant) throws SocketException, UnknownHostException {
 		
 		counter = new Counter(startTime, this, quant);
-		agentSocket = new DatagramSocket(port, InetAddress.getByName(adr));
-		listenThread = new Listener(this);
-		//adres = new Adress(port,InetAddress.getByName(adr));
+		agentSocket = new DatagramSocket(port, InetAddress.getByName(adress));
+		adr = new Adress(port,InetAddress.getByName(adress));
 		
-		Thread countThread = new Thread(this.counter);
+		countThread = new Thread(this.counter);
 		countThread.start();
-		toCount = this.counter.getCurrentTime();
-	
-	}*/
-	
-	public Agent(int port,long startTime,long quant) throws SocketException, UnknownHostException {
 		
-		counter = new Counter(startTime, this, quant);
-		agentSocket = new DatagramSocket(port, InetAddress.getByName("localhost"));
 		listenThread = new Listener(this);
-		adr = new Adress(port,InetAddress.getByName("localhost"));
-		
-		Thread countThread = new Thread(this.counter);
-		countThread.start();
+		listener = new Thread(listenThread);
+		listener.start();
 		toCount = this.counter.getCurrentTime();
 	
 	}
 	
-	public Agent(int port,long startTime,long quant, Agent agent) throws SocketException, UnknownHostException {
+	public Agent(String adress, int port,long startTime,long quant, Agent agent) throws SocketException, UnknownHostException {
 		
-		this(port,startTime,quant);
+		this(adress,port,startTime,quant);
 		this.adresses.add(agent.getAdress());
 	}
 	
@@ -64,7 +54,7 @@ public class Agent {
 		byte[] receiveData = new byte[32];
 
 		
-		while(true) {
+		while(!stop) {
 			
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			
@@ -82,9 +72,9 @@ public class Agent {
         	
         	
         	Adress newAdr = new Adress(port, IPAddress);
-        	if(!adresses.contains(newAdr))
+        	/*if(!adresses.contains(newAdr))
         		adresses.add(newAdr);
-        	Thread.sleep(100);
+        	Thread.sleep(100);*/
         	workMessage(line,newAdr);
         	//System.out.println(mesage + " " + newAdr.adrString());
 		}
@@ -106,7 +96,7 @@ public class Agent {
 		toCount += Long.valueOf(time);
 		numberOfAnswers++;
 		if(numberOfAnswers >= adresses.size()+1) {
-			System.out.println(this.adr.adrString() + " Got " + numberOfAnswers + " answers");
+			//System.out.println(this.adr.adrString() + " Got " + numberOfAnswers + " answers");
 			this.counter.setTime(toCount/(numberOfAnswers));
 			toCount = this.counter.getCurrentTime();
 			numberOfAnswers = 1;
@@ -114,7 +104,20 @@ public class Agent {
 		
 	}
 	
-	public void sendMessage(String message,Adress adr) throws IOException {
+	private void frgCommand(Adress adr) {
+		adresses.remove(adr);
+	}
+	
+	private void timeCommand(Adress adr) throws InterruptedException {
+		String message = "TMS " + String.valueOf(this.counter.getTime());
+		
+		sendThread = new Sender(message,adr,this);
+		Thread toSend = new Thread(sendThread);
+		toSend.start();
+		toSend.join();
+	}
+	
+	public void sendMessage(String message,Adress adr) throws IOException  {
 		
 		//System.out.println("Message " + message +  " sended from " + this.getAdress().adrString() );
 		byte[] sendData = new byte[32];
@@ -146,22 +149,19 @@ public class Agent {
 		
 		if(line[0].equals("ANS")){
 			ansCommand(line[1]);
-    		/*toCount += Long.valueOf(line[1]);
-    		numberOfAnswers++;
-    		//System.out.println("Count " + line[1]);
-    		if(numberOfAnswers >= adresses.size()) {
-    			for(Iterator<Adress> i = adresses.iterator();i.hasNext();) {
-    				this.counter.setTime(toCount/(numberOfAnswers + 1));
-        			this.toCount = this.counter.getCurrentTime();
-        			numberOfAnswers = 0;
-    			}
-    			System.out.println("Poschital");
-    		}*/
     	}
     	
     	if(line[0].equals("CLK")){
     		//System.out.println("Got clk");
     		clkCommand(senderAdr);
+    	}	
+    	if(line[0].equals("FRG")){
+    		//System.out.println("Got clk");
+    		frgCommand(senderAdr);
+    	}	
+    	if(line[0].equals("TIME")){
+    		//System.out.println("Got clk");
+    		timeCommand(senderAdr);
     	}	
 	}
 	
@@ -190,6 +190,17 @@ public class Agent {
 			
 			System.out.println("Adress " + toSend.ip + ":" + toSend.port);
 		}
+	}
+	
+	public List<Adress> getAdresses() {
+		return adresses;
+		
+	}
+	
+	public void stahp() {
+		counter.stop();
+		this.stop = true;
+		agentSocket.close();
 	}
 
 }

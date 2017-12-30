@@ -3,13 +3,13 @@ import java.util.Random;
 
 public class Sender implements Runnable {
 	
-	private Agent agentSender;
+	private Sendable agentSender;
 	private Adress agentReceiver;
 	private String message;
 	Random rand = new Random();
 
 	
-	public Sender(String message, Adress agentReceiver, Agent agentSender) {
+	public Sender(String message, Adress agentReceiver, Sendable agentSender) {
 		
 		this.agentSender = agentSender;
 		this.message = message;
@@ -20,15 +20,12 @@ public class Sender implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Thread.sleep(rand.nextInt(80) + 30);
+			//Thread.sleep(rand.nextInt(80) + 30);
 			agentSender.sendMessage(message, agentReceiver);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			}
+		}
 		
 	}
 
