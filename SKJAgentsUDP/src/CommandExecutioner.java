@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,6 +17,8 @@ public class CommandExecutioner {
 	private final String setParameters = "setParameters";
 	private final String showNetFor = "showNetFor";
 	private final String showing = "showing";
+	private final String addAdr = "addAdr";
+	private final String foreignAgent = "foreignAgent";
 	
 	private long systemTime = System.currentTimeMillis();
 	boolean reading = true;
@@ -80,6 +83,18 @@ public class CommandExecutioner {
 			break;
 		case showing:
 			monitor.stopShowing();
+			break;
+		case addAdr:
+			Adress foreignAdress = new Adress(Integer.valueOf(commandPart[1]),InetAddress.getByName(commandPart[2])); 
+			adressNet.add(foreignAdress);
+			addAdresses();
+			break;
+		case foreignAgent:
+			Agent foreignagent = agentCreator.addAgent(commandPart[1],Integer.valueOf(commandPart[2]),Long.valueOf(commandPart[3]),Long.valueOf(commandPart[4]));
+			Net.add(foreignagent);
+			adressNet.add(foreignagent.adr);
+			addressBook.put(String.valueOf(foreignagent.getAdress().port) , foreignagent);
+			addAdresses();
 			break;
 		default:
 			System.out.println("Unknown comand");
